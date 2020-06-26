@@ -31,12 +31,12 @@ def plot_output(y_train, y_test, y_prob_train, y_prob_test,
     # train: filled histo
     plt.hist(y_prob_train[y_train==1][:,1], bins=nbins,
              range=range,
-             label="Sig Train", normed=True, #log=True,
+             label="Sig Train", density=True, #log=True,
              bottom=0,
              color="red", histtype="stepfilled", alpha=0.5)
     plt.hist(y_prob_train[y_train==0][:,1], bins=nbins,
              range=range,
-             label="Bkg Train", normed=True, #log=True,
+             label="Bkg Train", density=True, #log=True,
              bottom=0,
              color="blue", histtype="stepfilled", alpha=0.5)
 
@@ -44,7 +44,7 @@ def plot_output(y_train, y_test, y_prob_train, y_prob_test,
     test_sig = y_prob_test[y_test==1][:,1]
     hist_sig, bins_sig = np.histogram(test_sig,
                                       range=range, bins=nbins,
-                                      normed=True)
+                                      density=True)
     cent_sig = (bins_sig[1:] + bins_sig[:-1])/2
     plt.errorbar(cent_sig, hist_sig, fmt='o',
                  color="red", label="Sig Test")
@@ -52,7 +52,7 @@ def plot_output(y_train, y_test, y_prob_train, y_prob_test,
     test_bkg = y_prob_test[y_test==0][:,1]
     hist_bkg, bins_bkg = np.histogram(test_bkg,
                                       range=range, bins=nbins,
-                                      normed=True, weights=test_bkg_w)
+                                      density=True, weights=test_bkg_w)
     cent_bkg = (bins_bkg[1:] + bins_bkg[:-1])/2
     plt.errorbar(cent_bkg, hist_bkg, fmt='o',
                  color="blue", label="Bkg Test")
@@ -99,6 +99,7 @@ if __name__ == '__main__':
 
     # train it
     model.fit(X_train, y_train)
+    print("Model has been trained")
 
     # plot features importance
     xgboost.plot_importance(model)

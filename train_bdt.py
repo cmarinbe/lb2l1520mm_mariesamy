@@ -109,10 +109,7 @@ if __name__ == '__main__':
     y_prob_test  = model.predict_proba(X_test)
 
     # plot train and test output
-    overtr_file = os.path.join(args.out_dir, "overtraining.png")
-    fig1 = plot_output(y_train, y_test, y_prob_train,
-                       y_prob_test, figname=overtr_file,
-                       train_w=w_train, test_w=w_test)
+    fig1 = plot_output(y_train, y_test, y_prob_train, y_prob_test)
 
     # evaluate performance with area under the roc
     fpr, tpr, thresholds = roc_curve(y_train, y_prob_train[:,1])

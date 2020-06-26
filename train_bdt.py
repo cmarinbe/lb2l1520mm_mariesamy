@@ -81,8 +81,8 @@ if __name__ == '__main__':
 
     # merge and define signal and background labels
     X = np.concatenate((sig_array, bkg_array))
-    y = np.concatenate((np.ones((sig_array.shape[0], 0)),# 1 is signal
-                        np.zeros((bkg_array.shape[0], 0)))) # 0 is background
+    y = np.concatenate((np.ones(sig_array.shape[0]),# 1 is signal
+                        np.zeros(bkg_array.shape[0]))) # 0 is background
 
     # split data in train and test samples
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)

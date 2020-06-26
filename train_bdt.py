@@ -52,7 +52,7 @@ def plot_output(y_train, y_test, y_prob_train, y_prob_test,
     test_bkg = y_prob_test[y_test==0][:,1]
     hist_bkg, bins_bkg = np.histogram(test_bkg,
                                       range=range, bins=nbins,
-                                      density=True, weights=test_bkg_w)
+                                      density=True)
     cent_bkg = (bins_bkg[1:] + bins_bkg[:-1])/2
     plt.errorbar(cent_bkg, hist_bkg, fmt='o',
                  color="blue", label="Bkg Test")
@@ -74,8 +74,8 @@ if __name__ == '__main__':
     # define the variables we want to use
     vars = ["Proton_IPCHI2_OWNPV", "Kaon_PT", "Lb_FD_OWNPV", "Jpsi_PT"]
     # create a pandas data frame with these variables only
-    sig_array = sig.pandas.df(vars, entrystart=0, entrystop=1000).to_numpy() # use only 1000 events for this example!
-    bkg_array = bkg.pandas.df(vars, entrystart=0, entrystop=1000).to_numpy() # use only 1000 events for this example!
+    sig_array = sig.pandas.df(vars, entrystart=0, entrystop=10000).to_numpy() # use only 1000 events for this example!
+    bkg_array = bkg.pandas.df(vars, entrystart=0, entrystop=10000).to_numpy() # use only 1000 events for this example!
     print("Signal shape:", sig_array.shape)
     print("Backgr shape:", bkg_array.shape)
 

@@ -3,9 +3,8 @@ import uproot as ut
 import numpy as np
 import xgboost
 
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve, auc
-from sklearn.externals import joblib
 
 import matplotlib.pyplot as plt
 
@@ -96,9 +95,6 @@ if __name__ == '__main__':
 
     # train it
     model.fit(X_train, y_train)
-
-    # save trained model
-    joblib.dump(model, "simple_bdt.pkl")
 
     # plot features importance
     xgboost.plot_importance(model)

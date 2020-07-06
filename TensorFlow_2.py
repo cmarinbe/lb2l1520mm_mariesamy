@@ -21,42 +21,27 @@ vars = ["Lb_PT", "Lb_IPCHI2_OWNPV","Lb_FDCHI2_OWNPV", "Lb_LOKI_DTF_CHI2NDOF",
 tf.keras.backend.set_floatx('float64') #to set the data type
 
 # create a pandas data frame with these variables only
-sig_df = Signal.pandas.df(vars)
-bkg_df = Bruit.pandas.df(vars)
+sig_array = Signal.pandas.df(vars).to_numpy()
+bkg_array = Bruit.pandas.df(vars).to_numpy()
 
-data_df = data.pandas.df(vars)  #to select the signal in the data at the end
+print("Signal shape:", sig_array.shape)
+print("Backgr shape:", bkg_array.shape)
 
-# add a target column and merge the two df
-sig_df['target'] = np.ones(sig_df.shape[0])
-bkg_df['target'] = np.zeros(bkg_df.shape[0])
+data_array = data.pandas.df(vars).to_numpy()  #to select the signal in the data at the end
 
-print(sig_df.keys())
-print(np.shape(sig_df['target']),np.shape(sig_df['Lb_PT']))
-
-df = sig_df.append(bkg_df)
+# merge and define signal and background labels
+X = np.concatenate((sig_array, bkg_array))
+y = np.concatenate((np.ones(sig_array.shape[0]),# 1 is signal
+                    np.zeros(bkg_array.shape[0]))) # 0 is background
 
 # split data in train and test samples
-train_df, test_df = train_test_split(df, test_size=0.5)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
 
-# create datasets to train the model
-target_train = train_df.pop('target').to_numpy()
-target_train = np.reshape(target_train, (-1, 1))   #to have the right label shape (everything in one column)
-
-target_test = test_df.pop('target').to_numpy()
-target_test = np.reshape(target_test, (-1, 1))
+print("Train size:", X_train.shape[0])
+print("Test size: ", X_test.shape[0])
 
 
-print(train_df.keys()) # target is no longer there 
-
-
-dataset_train = tf.data.Dataset.from_tensor_slices((train_df.to_numpy(), target_train))
-dataset_test = tf.data.Dataset.from_tensor_slices((test_df.to_numpy(), target_test))
-
-
-for feat, targ in dataset_train.take(5):
-    print ('Features: {}, Target: {}'.format(feat, targ))
-
-
+# define model
 model = keras.Sequential([
     keras.layers.Dense(10, activation='relu'),   #n neurones
     keras.layers.Dense(10, activation='relu'),   #n neurones Second layer
@@ -69,7 +54,7 @@ model.compile(optimizer='adam',
 
 
 # train it
-model.fit(dataset_train, epochs=20)
+model.fit(X_train, y_train, epochs=20)
 print("Model has been trained")
 model.summary()
 
@@ -77,8 +62,8 @@ model.summary()
 probability_model = tf.keras.Sequential([model, 
                                      tf.keras.layers.Softmax()])
 
-y_predict_train = probability_model.predict(dataset_train)
-y_predict_test = probability_model.predict(dataset_test)
+y_predict_train = probability_model.predict(X_train)
+y_predict_test = probability_model.predict(X_test)
 
 y_prob_data = probability_model.predict(data_array)
 print(y_prob_data)

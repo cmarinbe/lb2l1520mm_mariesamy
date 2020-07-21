@@ -29,8 +29,7 @@ def simpleFit(tree, cuts, mean, xmin = 4000, xmax = 7000):
     initial and range values are hardcoded in the code, except
     for the initial value of the Gaussian mean and the range
     of the B_M variable to be used.
-    Returns the composed model (RooAbsPdf), the residual plot object
-    and its chi2 value (float)
+    Returns the dataset and the composed model (RooAbsPdf)
     Definition of the arguments:
     :tree: type TTree
     the root TTree that contains the variable to be fitted
@@ -91,19 +90,19 @@ def simpleFit(tree, cuts, mean, xmin = 4000, xmax = 7000):
     ds.Draw()
 
     # print results
-    print "{} has been fit to {} with a chi2 = {}".format(model.GetName(),
-                                                          tree.GetName(), chi2)
-    print "Total number of entries is: {}".format(ds.numEntries())
-    print "Number of sig entries is: {:.0f} +- {:.0f}".format(nsig.getValV(),
-                                                              nsig.getError())
-    print "Number of bkg entries is: {:.0f} +- {:.0f}".format(nbkg.getValV(),
-                                                              nbkg.getError())
+    print("{} has been fit to {}".format(model.GetName(),
+                                         tree.GetName()))
+    print("Total number of entries is: {}".format(ds.numEntries()))
+    print("Number of sig entries is: {:.0f} +- {:.0f}".format(nsig.getValV(),
+                                                              nsig.getError()))
+    print("Number of bkg entries is: {:.0f} +- {:.0f}".format(nbkg.getValV(),
+                                                              nbkg.getError()))
     
     # compute S/B with error propagation from uncertainties module
-    nsig = ufloat(nsig.getValV(), nsig.getError())
-    nbkg = ufloat(nbkg.getValV(), nbkg.getError())
-    signif = nsig/nbkg
-    print "S/B = {:.2f} +- {:.2f}".format(signif.nominal_value, signif.std_dev)
+    nsigu = ufloat(nsig.getValV(), nsig.getError())
+    nbkgu = ufloat(nbkg.getValV(), nbkg.getError())
+    signif = nsigu/nbkgu
+    print("S/B = {:.2f} +- {:.2f}".format(signif.nominal_value, signif.std_dev)))
     
     return ds, model
 
@@ -126,15 +125,15 @@ if __name__=="__main__":
 
     # sanity check
     if not os.path.exists(args.file):
-        print "File doesn't exist! Exiting..."
+        print("File doesn't exist! Exiting...")
         exit()
 
     # read data
     f = ROOT.TFile(args.file)
     t = f.Get(args.tree)
 
-    ds, model, Plot, chi2 = simpleFit(t, args.cuts, args.mean,
-                                      args.xmin, args.xmax)
+    ds, model = simpleFit(t, args.cuts, args.mean,
+                          args.xmin, args.xmax)
 
 
 #EOF

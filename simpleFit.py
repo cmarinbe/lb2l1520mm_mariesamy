@@ -21,14 +21,14 @@ RooExponential = ROOT.RooExponential
 RooAddPdf      = ROOT.RooAddPdf
 
 # definition of functions for this script
-def simpleFit(tree, cuts, mean, xmin = 4000, xmax = 7000):
+def simpleFit(tree, cuts, xmean, xmin = 4000, xmax = 7000):
     """
-    This function fits the "B_M" variable of a given TTree
+    This function fits the "Lb_M" variable of a given TTree
     with a model formed by a Gaussian and an exponential pdf.
     All shape parameters are allowed to float in the fit. The 
     initial and range values are hardcoded in the code, except
     for the initial value of the Gaussian mean and the range
-    of the B_M variable to be used.
+    of the Lb_M variable to be used.
     Returns the dataset and the composed model (RooAbsPdf)
     Definition of the arguments:
     :tree: type TTree
@@ -39,24 +39,24 @@ def simpleFit(tree, cuts, mean, xmin = 4000, xmax = 7000):
     initial value for the Gaussian mean that will be floated
     during the fit
     :xmin: type float, optional
-    minimum value of the B_M range to be fitted. Default: 4000
+    minimum value of the Lb_M range to be fitted. Default: 4000
     :xmax: type float, optional
-    maximum value of the B_M range to be fitted. Default: 7000
+    maximum value of the Lb_M range to be fitted. Default: 7000
     """
     
     # define variables and pdfs
-    B_M = RooRealVar("B_M","B_M", xmin, xmax)
+    Lb_M = RooRealVar("Lb_M","Lb_M", xmin, xmax)
     
-    mean  = RooRealVar("mean", "mean",  mean, mean-50, mean+50)
-    sigma = RooRealVar("sigma", "sigma", 80, 10, 150)
-    gauss = RooGaussian("gauss", "gauss", B_M, mean, sigma)
+    mean  = RooRealVar("mean", "mean",  xmean, xmean-50, xmean+50)
+    sigma = RooRealVar("sigma", "sigma", 20, 10, 50)
+    gauss = RooGaussian("gauss", "gauss", Lb_M, mean, sigma)
     
     tau = RooRealVar("tau", "tau", -0.005, -0.01, 0.)
-    exp = RooExponential("exp", "exp", B_M, tau)
+    exp = RooExponential("exp", "exp", Lb_M, tau)
     
     # define coefficiencts
-    nsig = RooRealVar("nsig", "nsig", 1000, 0, 20000)
-    nbkg = RooRealVar("nbkg", "nbkg", 1000, 0, 20000)
+    nsig = RooRealVar("nsig", "nsig", 100, 0, 2000)
+    nbkg = RooRealVar("nbkg", "nbkg", 100, 0, 2000)
     
     # build model
     suma = RooArgList()
@@ -72,22 +72,22 @@ def simpleFit(tree, cuts, mean, xmin = 4000, xmax = 7000):
     
     # define dataset
     if (cuts!=""): tree = tree.CopyTree(cuts)
-    ds = RooDataSet("data", "dataset with x", tree, RooArgSet(B_M))
+    ds = RooDataSet("data", "dataset with x", tree, RooArgSet(Lb_M))
     
-    # plot dataset and fit
-    massFrame = B_M.frame()
-    ds.plotOn(massFrame, Name="histo_data")
+    #  fit and save results
+    fitResults = model.fitTo(ds, RooFit.Save(True))
+
+    # plot dataset and fit results
+    c = ROOT.TCanvas()
+    massFrame = Lb_M.frame()
+    ds.plotOn(massFrame, RooFit.Name("histo_data"))
     
-    fitResults = model.fitTo(ds)
-    model.plotOn(massFrame, RooFit.VisualizeError(fitResults, 1),
-                 RooFit.Name("curve_model"))
-    model.plotOn(massFrame, RooFit.Components("gauss"), RooFit.LineColor(2),
-                 RooFit.VisualizeError(fitResults, 1))
-    model.plotOn(massFrame, RooFit.Components("exp")  , RooFit.LineColor(3),
-                 RooFit.VisualizeError(fitResults, 1))
-    model.paramOn(massFrame, Layout=(.55,.95,.93),
-                  Parameters=RooArgSet(nsig, nbkg, mean, sigma, tau))
-    ds.Draw()
+    model.plotOn(massFrame)
+    model.plotOn(massFrame, RooFit.Components("gauss"), RooFit.LineColor(2))
+    model.plotOn(massFrame, RooFit.Components("exp")  , RooFit.LineColor(3))
+    model.paramOn(massFrame, RooFit.Layout(.55,.95,.93))
+    massFrame.Draw()
+    c.SaveAs("fit.png")
 
     # print results
     print("{} has been fit to {}".format(model.GetName(),
@@ -102,9 +102,9 @@ def simpleFit(tree, cuts, mean, xmin = 4000, xmax = 7000):
     nsigu = ufloat(nsig.getValV(), nsig.getError())
     nbkgu = ufloat(nbkg.getValV(), nbkg.getError())
     signif = nsigu/nbkgu
-    print("S/B = {:.2f} +- {:.2f}".format(signif.nominal_value, signif.std_dev)))
+    print("S/B = {:.2f} +- {:.2f}".format(signif.nominal_value, signif.std_dev))
     
-    return ds, model
+    return ds, model, c
 
 
 if __name__=="__main__":
@@ -132,8 +132,8 @@ if __name__=="__main__":
     f = ROOT.TFile(args.file)
     t = f.Get(args.tree)
 
-    ds, model = simpleFit(t, args.cuts, args.mean,
-                          args.xmin, args.xmax)
+    ds, model, c = simpleFit(t, args.cuts, args.mean,
+                             args.xmin, args.xmax)
 
 
 #EOF
